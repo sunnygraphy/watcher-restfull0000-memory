@@ -1,0 +1,190 @@
+<html>
+<head>
+<meta charset="utf-8">
+<!--<script src="https://www.gstatic.com/firebasejs/5.8.2/firebase.js"></script>-->
+
+<script defer src="https://www.gstatic.com/firebasejs/5.8.2/firebase-app.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/5.8.2/firebase-database.js"></script>
+	
+<script defer src="https://www.gstatic.com/firebasejs/5.8.2/firebase-auth.js"></script>
+
+
+<script>
+ 
+ 
+</script>
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+</head>
+<body>
+    
+
+<h1>HybridWebView Test</h1>
+<br/>
+Enter name: <input type="text" id="name">
+<br/>
+<br/>
+<button type="button" onclick="javascript:invokeCSCode($('#name').val());">Invoke C# Code</button>
+<br/>
+<p id="result">Result:</p>
+<script type="text/javascript">
+function log(str)
+{
+	$('#result').text($('#result').text() + " " + str);
+}
+
+
+
+$(document).ready(function(){
+
+invokeCSCode( "ready");
+	return;
+  //writeUserData("1","1","1","1","1","1","1","1"); //이코드가 있어야 작동한다 ?
+  // jQuery methods go here...
+  //setTimeout(enable_groupQueue, 1500);
+  alert("test");
+  initApp() ;
+  
+
+});
+
+function initApp() {
+      // Listening for auth state changes.
+      // [START authstatelistener]
+      firebase.auth().onAuthStateChanged(function(user) {
+       
+        if (user) {
+          // User is signed in.
+          var displayName = user.displayName;
+          var email = user.email;
+          var emailVerified = user.emailVerified;
+          var photoURL = user.photoURL;
+          var isAnonymous = user.isAnonymous;
+          //var uid = user.uid;
+          uid = user.uid;
+          var providerData = user.providerData;
+          console.log("sign in ");
+          alert("test");
+          setTimeout(enable_groupQueue, 3000);
+          
+        } else {
+          
+          alert("sign out");
+          setTimeout(signin, 2000);
+        }
+        
+      });
+      // [END authstatelistener]
+
+      
+    }
+
+function write_test()
+{
+	firebase.database().ref("insert_test").child(uid).set({
+    How: "much",
+    comment:'test'
+  });
+}
+function enable_groupQueue()
+{
+ 	write_test();
+	invokeCSCode( "ready");
+   console.log("enabling groupQueue..");
+     
+	var ref = firebase.database().ref("groupQueue");      
+   	ref.on('child_added', function(childSnapshot, prevChildKey) {
+  		console.log(childSnapshot);
+	});
+  
+  /*
+	 ref.on('value',function (snapshot) {
+    	console.log("In Value");
+    	console.log(snapshot);
+	}, function(error) {
+    	console.error(error);
+	});
+	*/
+}
+function get_eval_dates(member_key, friend_key)
+{
+    var tmp_data = "evaluated_days:";
+ 	firebase.database().ref("evaluated_days").child(member_key).child(friend_key).once("value", function(snapshot){
+		cnt = snapshot.numChildren();
+		snapshot.forEach(function(child){
+		    
+			tmp_data = tmp_data + child.key + ":";
+			
+	
+
+		});
+		invokeCSCode( tmp_data);		
+		
+		
+		
+	});
+ 
+}
+
+
+//8은 애스키코드 bs
+function get_meals_a_day_for_allMembers(memberKey, skey, ekey)
+{
+    mealList = "";
+	
+	try
+	{
+		firebase.database().ref(memberKey).orderByKey().startAt(skey).endAt(ekey).once("value", function(snapshot){
+			cnt = snapshot.numChildren();
+			snapshot.forEach(function(child){
+				mealList = mealList + child.key + String.fromCharCode(8)+child.val().fileId  + String.fromCharCode(8)+child.val().comment +"." + String.fromCharCode(8)+child.val().ownerName +":";
+			});
+		
+			invokeCSCode("get_meals_a_day_for_allMembers:" + mealList);
+		
+		});
+	}
+	catch(err)
+	{
+	  invokeCSCode("get_meals_a_day_for_allMembers:" + err);
+	}
+			
+	
+
+    
+  
+}
+
+
+function get_all_meal_list(memberKey)
+{
+    mealList = "";
+			
+	firebase.database().ref(memberKey).once("value", function(snapshot){
+		cnt = snapshot.numChildren();
+		snapshot.forEach(function(child){
+			var friend = child.val().ownerId;
+			mealList = mealList + child.key +String.fromCharCode(8) + friend +":";
+		});
+		
+		invokeCSCode("get_all_meal_list:" + mealList);
+		
+	});
+
+    
+  
+}
+
+function update_fileId(member_key, mealId,fileId)
+{
+    
+ 	firebase.database().ref(member_key).child(mealId).child("fileId").set(fileId);
+ 
+}
+
+
+
+</script>
+</body>
+<script defer src="./init-firebase.js?a=3"></script>
+<script defer src="utils.js?a=28"></script>
+</html>
